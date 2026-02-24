@@ -37,14 +37,14 @@ void Camera::handle_input() {
     }
 }
 
-void Camera::update(const Vec <float> new_location, float dt) {
+void Camera::update(const Vec<float>& new_location, float dt) {
     goal = new_location;
-    acceleration = (goal - location);
+    physics.acceleration = (goal - physics.position) * 10.0f;
 
-    velocity += 0.5f * acceleration * dt;
-    location += velocity * dt;
-    velocity += 0.5f * acceleration * dt;
-    velocity *= {damping, damping};
+    physics.velocity += 0.5f * physics.acceleration * dt;
+    physics.position += physics.velocity * dt;
+    physics.velocity += 0.5f * physics.acceleration * dt;
+    physics.velocity *= {physics.damping, physics.damping};
 
     calculate_visible_tiles();
 }

@@ -4,7 +4,8 @@
 #include <algorithm>
 
 #include "physics.h"
-#include "player.h"
+#include "fsm.h"
+#include "states.h"
 
 World::World(int width, int height): tilemap{width, height} {}
 
@@ -23,51 +24,134 @@ bool World::collides(const Vec<float>& position) const {
     return tilemap(x, y) == Tile::Platform;
 }
 
-Player* World::create_player() {
-    player = std::make_unique<Player>(Vec<float>{10, 5}, Vec<float>{64, 64});
+GameObject* World::create_player() {
+    // Create
+    Transitions transitions = {
+        {{StateType::Standing, Transition::Jump}, StateType::InAir},
+        {{StateType::InAir, Transition::Stop}, StateType::Standing},
+        {{StateType::Standing, Transition::Move}, StateType::Running},
+        {{StateType::Running, Transition::Stop}, StateType::Standing},
+        {{StateType::Running, Transition::Jump}, StateType::InAir},
+    };
+
+    States states = {
+        {StateType::Standing, new Standing()},
+        {StateType::InAir, new InAir()},
+        {StateType::Running, new Running()},
+    };
+
+    FSM* fsm = new FSM{transitions, states, StateType::Standing};
+
+    player = std::make_unique<GameObject>(
+            Vec<float>{10, 5},
+            Vec<int>{1, 1},
+            *this,
+            fsm,
+            Color(255, 0, 0, 255)
+        );
+
     return player.get();
 }
 
 void World::update(float dt) {
     // currently only updating player
-    // SDL_FRect future = {player->position.x, player->position.y, player->size.x, player->size.y};
-    // future.x += player->velocity.x;
-    // future.y += player->velocity.y;
-
-    auto position = player->position;
-    auto velocity = player->velocity;
-    auto acceleration = player->acceleration;
+    auto position = player->physics.position;
+    auto velocity = player->physics.velocity;
+    auto acceleration = player->physics.acceleration;
 
     velocity += 0.5f * acceleration * dt;
     position += velocity * dt;
     velocity += 0.5f * acceleration * dt;
-    velocity.x *= damping;
+    velocity.x *= player->physics.damping;
 
-    velocity.x = std::clamp(velocity.x, -terminal_velocity, terminal_velocity);
-    velocity.y = std::clamp(velocity.y, -terminal_velocity, terminal_velocity);
-
-    Vec<float> future {position.x, position.y};
+    velocity.x = std::clamp(velocity.x, -player->physics.terminal_velocity, player->physics.terminal_velocity);
+    velocity.y = std::clamp(velocity.y, -player->physics.terminal_velocity, player->physics.terminal_velocity);
 
     // check for x collisions
-    if (collides(future)) {
-        player->velocity.x = 0;
-        player->acceleration.x = 0;
-    } else {
-        player->position.x = position.x;
-        player->velocity.x = velocity.x;
-        player->acceleration.x = acceleration.x;
+    // Check for collisions with the world - x direction
+    Vec<float> future_position{position.x, player->physics.position.y};
+    Vec<float> future_velocity{velocity.x, 0};
+    move_to(future_position, player->size, future_velocity);
+
+    // y direction attempt after (maybe) moving in x
+    future_velocity.y = velocity.y;
+    future_position.y = position.y;
+    move_to(future_position, player->size, future_velocity);
+
+    // update player
+    player->physics.position = future_position;
+    player->physics.velocity = future_velocity;
+}
+
+void World::move_to(Vec<float>& position, const Vec<int>& size, Vec<float>& velocity) {
+    // test sides first. if both collide move backward
+    // bottom side
+    if (collides(position) && collides({position.x + size.x, position.y})) {
+        position.y = std::ceil(position.y);
+        velocity.y = 0;
     }
-
-    // y collisions
-    future.x = player->position.x;
-    future.y = position.y;
-
-    if (collides(future)) {
-        player->velocity.y = 0;
-        player->acceleration.y = gravity;
-    } else {
-        player->position.y = position.y;
-        player->velocity.y = velocity.y;
-        player->acceleration.y = acceleration.y;
+    // top side
+    else if (collides({position.x, position.y + size.y}) && collides({position.x + size.x, position.y + size.y})) {
+        position.y = std::floor(position.y);
+        velocity.y = 0;
+    }
+    // left side
+    if (collides(position) && collides({position.x, position.y + size.y})) {
+        position.x = std::ceil(position.x);
+        velocity.x = 0;
+    }
+    // right side
+    else if (collides({position.x + size.x, position.y}) && collides({position.x + size.x, position.y + size.y})) {
+        position.x = std::floor(position.x);
+        velocity.x = 0;
+    }
+    // test corners next, move back in smaller axis
+    if (collides(position)) {
+        float dx = std::ceil(position.x) - position.x;
+        float dy = std::ceil(position.y) - position.y;
+        if (dx > dy) {
+            position.y = std::ceil(position.y);
+            velocity.y = 0;
+        }
+        else {
+            position.x = std::ceil(position.x);
+            velocity.x = 0;
+        }
+    }
+    else if (collides({position.x, position.y + size.y})) {
+        float dx = std::ceil(position.x) - position.x;
+        float dy = position.y - std::floor(position.y);
+        if (dx > dy) {
+            position.y = std::floor(position.y);
+            velocity.y = 0;
+        }
+        else {
+            position.x = std::ceil(position.x);
+            velocity.x = 0;
+        }
+    }
+    else if (collides({position.x + size.x, position.y})) {
+        float dx = position.x - std::floor(position.x);
+        float dy = std::ceil(position.y) - position.y;
+        if (dx > dy) {
+            position.y = std::ceil(position.y);
+            velocity.y = 0;
+        }
+        else {
+            position.x = std::floor(position.x);
+            velocity.x = 0;
+        }
+    }
+    else if (collides({position.x + size.x, position.y + size.y})) {
+        float dx = position.x - std::floor(position.x);
+        float dy = position.y - std::floor(position.y);
+        if (dx > dy) {
+            position.y = std::floor(position.y);
+            velocity.y = 0;
+        }
+        else {
+            position.x = std::floor(position.x);
+            velocity.x = 0;
+        }
     }
 }

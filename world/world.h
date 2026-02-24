@@ -5,8 +5,7 @@
 
 #include "tilemap.h"
 #include "vec.h"
-
-class Player;
+#include "game_object.h"
 
 class World {
 public:
@@ -15,12 +14,13 @@ public:
     void add_platform(float x, float y, float width, float height);
     const std::vector<SDL_FRect>& get_platforms() const;
     bool collides(const Vec<float>& position) const;
-    Player* create_player();
+    GameObject* create_player();
     void update(float dt);
+    void move_to(Vec<float>& position, const Vec<int>& size, Vec<float>& velocity);
 
     Tilemap tilemap;
 
 private:
-    std::unique_ptr<Player> player;
+    std::unique_ptr<GameObject> player;
 
 };
