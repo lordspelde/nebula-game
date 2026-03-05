@@ -13,15 +13,15 @@ bool on_platform(const World& world, const GameObject& obj) {
 }
 
 // Standing
-void Standing::on_enter(World&, GameObject& object) {
-    object.color = {255, 0, 0, 255};
-    object.physics.acceleration.x = 0;
+void Idle::on_enter(World&, GameObject& object) {
+    object.color = {0, 0, 255, 255};
+    object.physics.acceleration = {0, 0};
 }
 
-Action* Standing::input(World& world, GameObject& obj, ActionType action_type) {
-    if (action_type == ActionType::Jump) {
-        obj.fsm->transition(Transition::Jump, world, obj);
-        return new Jump();
+Action* Idle::input(World& world, GameObject& obj, ActionType action_type) {
+    if (action_type == ActionType::Forward) {
+        obj.fsm->transition(Transition::Move, world, obj);
+        return new MoveForward();
     } else if (action_type == ActionType::MoveRight) {
         obj.fsm->transition(Transition::Move, world, obj);
         return new MoveRight();
@@ -33,31 +33,14 @@ Action* Standing::input(World& world, GameObject& obj, ActionType action_type) {
     return nullptr;
 }
 
-// InAir
-void InAir::on_enter(World& world, GameObject& object) {
-    elapsed = cooldown;
-    object.color = {0, 0, 255, 255};
+// Flying
+void Flying::on_enter(World&, GameObject& obj) {
+    obj.color = {255, 0, 0, 255};
 }
 
-void InAir::update(World& world, GameObject& obj, double dt) {
-    elapsed -= dt;
-
-    if (elapsed <= 0 && on_platform(world, obj)) {
-        obj.fsm->transition(Transition::Stop, world, obj);
-    }
-}
-
-// Running
-void Running::on_enter(World&, GameObject& obj) {
-    obj.color = {255, 255, 0, 255};
-}
-
-Action* Running::input(World& world, GameObject& obj, ActionType action_type) {
+Action* Flying::input(World& world, GameObject& obj, ActionType action_type) {
     if (action_type == ActionType::None) {
         obj.fsm->transition(Transition::Stop, world, obj);
-    } else if (action_type == ActionType::Jump) {
-        obj.fsm->transition(Transition::Jump, world, obj);
-        return new Jump();
     }
 
     return nullptr;

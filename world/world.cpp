@@ -27,20 +27,16 @@ bool World::collides(const Vec<float>& position) const {
 GameObject* World::create_player() {
     // Create
     Transitions transitions = {
-        {{StateType::Standing, Transition::Jump}, StateType::InAir},
-        {{StateType::InAir, Transition::Stop}, StateType::Standing},
-        {{StateType::Standing, Transition::Move}, StateType::Running},
-        {{StateType::Running, Transition::Stop}, StateType::Standing},
-        {{StateType::Running, Transition::Jump}, StateType::InAir},
+        {{StateType::Idle, Transition::Move}, StateType::Moving},
+        {{StateType::Moving, Transition::Stop}, StateType::Idle},
     };
 
     States states = {
-        {StateType::Standing, new Standing()},
-        {StateType::InAir, new InAir()},
-        {StateType::Running, new Running()},
+        {StateType::Idle, new Idle()},
+        {StateType::Moving, new Flying()},
     };
 
-    FSM* fsm = new FSM{transitions, states, StateType::Standing};
+    FSM* fsm = new FSM{transitions, states, StateType::Idle};
 
     player = std::make_unique<GameObject>(
             Vec<float>{10, 5},
@@ -64,8 +60,8 @@ void World::update(float dt) {
     velocity += 0.5f * acceleration * dt;
     velocity.x *= player->physics.damping;
 
-    velocity.x = std::clamp(velocity.x, -player->physics.terminal_velocity, player->physics.terminal_velocity);
-    velocity.y = std::clamp(velocity.y, -player->physics.terminal_velocity, player->physics.terminal_velocity);
+    velocity.x = std::clamp(velocity.x, -player->physics.max_speed, player->physics.max_speed);
+    velocity.y = std::clamp(velocity.y, -player->physics.max_speed, player->physics.max_speed);
 
     // check for x collisions
     // Check for collisions with the world - x direction

@@ -6,8 +6,6 @@
 
 GameObject::GameObject(const Vec <float>& position, const Vec <int>& size, World& world, FSM* fsm, Color color)
     : physics{position, {0, 0}, {0, 0}}, size{size}, fsm {fsm}, color{color} {
-    physics.acceleration.y = physics.gravity;
-
     fsm->current_state->on_enter(world, *this);
 }
 
@@ -19,9 +17,11 @@ void GameObject::input(World &world) {
     const bool *key_states = SDL_GetKeyboardState(NULL);
 
     ActionType action_type = ActionType::None;
-    if (key_states[SDL_SCANCODE_SPACE]) {
+    if (key_states[SDL_SCANCODE_W]) {
         // velocity.y = jump_velocity;
-        action_type = ActionType::Jump;
+        action_type = ActionType::Forward;
+    } else if (key_states[SDL_SCANCODE_A] && key_states[SDL_SCANCODE_D]) {
+        // do nothing
     } else if (key_states[SDL_SCANCODE_D]) {
         action_type = ActionType::MoveRight;
     } else if (key_states[SDL_SCANCODE_A]) {

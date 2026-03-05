@@ -5,7 +5,7 @@ class GameObject;
 
 enum class ActionType {
     None,
-    Jump,
+    Forward,
     MoveLeft,
     MoveRight,
 };
@@ -16,7 +16,7 @@ public:
     virtual void perform(World& world, GameObject& obj) = 0;
 };
 
-class Jump : public Action {
+class MoveForward : public Action {
     void perform(World&, GameObject& obj) override;
 };
 
