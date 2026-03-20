@@ -14,6 +14,7 @@ public:
     Vec<float> position{0,0};
     Vec<float> velocity{0,0};
     Vec<float> acceleration{0,0};
+    Vec<float> direction{1,0};
 
     float damping{0.99f};
     float ship_acceleration{60.0f};
