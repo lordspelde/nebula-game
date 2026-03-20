@@ -3,15 +3,18 @@
 #include "fsm.h"
 
 void KeyboardInput::get_input() {
-    if (next_action_type == ActionType::Jump) return;
-
     const bool *key_states = SDL_GetKeyboardState(NULL);
 
     if (key_states[SDL_SCANCODE_D]) {
         next_action_type = ActionType::MoveRight;
     }
+
     if (key_states[SDL_SCANCODE_A]) {
         next_action_type = ActionType::MoveLeft;
+    }
+
+    if (key_states[SDL_SCANCODE_W]) {
+        next_action_type = ActionType::Forward;
     }
 }
 
@@ -27,9 +30,5 @@ void KeyboardInput::handle_input(World& world, GameObject& obj) {
 }
 
 void KeyboardInput::collect_discrete_event(SDL_Event* event) {
-    if (event->type == SDL_EVENT_KEY_DOWN && event->key.repeat == 0) {
-        if (event->key.scancode == SDL_SCANCODE_SPACE) {
-            next_action_type = ActionType::Jump;
-        }
-    }
+    
 }

@@ -22,7 +22,7 @@ Game::Game(std::string title, int width, int height)
 }
 
 void Game::input() {
-    player->input(world);
+    player->input->get_input();
     camera.handle_input();
 }
 

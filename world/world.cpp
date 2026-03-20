@@ -6,13 +6,14 @@
 #include "physics.h"
 #include "fsm.h"
 #include "states.h"
+#include "keyboard_input.h"
 
 World::World(int width, int height): tilemap{width, height} {}
 
 void World::add_platform(float x, float y, float width, float height) {
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
-            tilemap(x+j, y+i) = Tile::Platform;
+            tilemap(x+j, y+i) = Tile{};
         }
     }
 }
@@ -21,7 +22,7 @@ bool World::collides(const Vec<float>& position) const {
     int x = std::floor(position.x);
     int y = std::floor(position.y);
 
-    return tilemap(x, y) == Tile::Platform;
+    return tilemap(x, y).blocking;
 }
 
 GameObject* World::create_player() {
@@ -37,12 +38,14 @@ GameObject* World::create_player() {
     };
 
     FSM* fsm = new FSM{transitions, states, StateType::Idle};
+    KeyboardInput* input = new KeyboardInput();
 
     player = std::make_unique<GameObject>(
-            Vec<float>{10, 5},
+            // Vec<float>{10, 5},
             Vec<int>{1, 1},
             *this,
             fsm,
+            input,
             Color(255, 0, 0, 255)
         );
 

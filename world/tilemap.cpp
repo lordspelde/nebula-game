@@ -12,9 +12,6 @@ Tilemap::Tilemap(int width, int height)
     if (height < 1) {
         throw std::runtime_error("height must by positive");
     }
-
-    // fill map with open tiles
-    std::fill(std::begin(tiles), std::end(tiles), Tile::Open);
 }
 
 void Tilemap::check_bounds(int x, int y) const {

@@ -5,10 +5,10 @@
 #include "graphics.h"
 #include "physics.h"
 #include "animated_sprite.h"
+#include "input.h"
 
 class World;
 class FSM;
-class Input;
 
 using Sprites = std::map<std::string, AnimatedSprite>;
 
