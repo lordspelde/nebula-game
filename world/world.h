@@ -12,7 +12,6 @@ public:
     World(int width, int height);
 
     void add_platform(float x, float y, float width, float height);
-    const std::vector<SDL_FRect>& get_platforms() const;
     bool collides(const Vec<float>& position) const;
     GameObject* create_player();
     void update(float dt);
