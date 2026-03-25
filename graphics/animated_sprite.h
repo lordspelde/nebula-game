@@ -9,6 +9,7 @@ public:
 
     void flip(bool flip);
     void update(double dt);
+    void set_angle(double angle);
     void reset();
     Sprite get_sprite();
     int number_of_frames();

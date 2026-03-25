@@ -63,8 +63,12 @@ void World::update(float dt) {
     velocity += 0.5f * acceleration * dt;
     velocity.x *= player->physics.damping;
 
-    velocity.x = std::clamp(velocity.x, -player->physics.max_speed, player->physics.max_speed);
-    velocity.y = std::clamp(velocity.y, -player->physics.max_speed, player->physics.max_speed);
+    // probably inefficient as hell, but i'm not too keen to redo the actual motion formula at this time
+    float magnitude = std::clamp(length(velocity), 0.0f, player->physics.max_speed);
+    velocity = player->physics.direction * magnitude;
+
+    // velocity.x = std::clamp(velocity.x, -player->physics.max_speed, player->physics.max_speed);
+    // velocity.y = std::clamp(velocity.y, -player->physics.max_speed, player->physics.max_speed);
 
     // check for x collisions
     // Check for collisions with the world - x direction

@@ -9,6 +9,12 @@ void AnimatedSprite::flip(bool flip) {
     }
 }
 
+void AnimatedSprite::set_angle(double angle) {
+    for (auto& sprite : sprites) {
+        sprite.angle = angle;
+    }
+}
+
 void AnimatedSprite::update(double dt) {
     if (dt_per_frame < 0) return;
 
