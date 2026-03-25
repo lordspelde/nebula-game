@@ -15,54 +15,58 @@ if (WIN32)
 endif()
 
 include(FetchContent)
-set(FETCHCONTENT_QUIET FALSE)
 
+# 1. ALWAYS Declare the potential dependencies first
+FetchContent_Declare(
+    SDL
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
+    GIT_TAG release-3.4.0
+    GIT_SHALLOW TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
+FetchContent_Declare(
+    SDL_mixer
+    GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
+    GIT_TAG main
+    GIT_SHALLOW TRUE
+    OVERRIDE_FIND_PACKAGE
+)
+
+# 2. Check for SDL3 Core
 find_package(SDL3 QUIET)
-
 if(NOT SDL3_FOUND)
-        FetchContent_Declare(
-                SDL
-                GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-                GIT_TAG release-3.4.0
-                GIT_SHALLOW TRUE
-                GIT_PROGRESS TRUE
-                OVERRIDE_FIND_PACKAGE
-        )
+    message(STATUS "SDL3 not found - building from source")
+    FetchContent_MakeAvailable(SDL)
 endif()
 
+# 3. Check for SDL3 Mixer
 find_package(SDL3_mixer QUIET)
-
 if(NOT SDL3_mixer_FOUND)
-        FetchContent_Declare(
-                SDL_mixer
-                GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
-                GIT_TAG main
-                GIT_SHALLOW TRUE
-                GIT_PROGRESS TRUE
-                OVERRIDE_FIND_PACKAGE
-        )
-        # disable formats we don't use to make the build faster and smaller
-        set(SDLMIXER_MIDI_NATIVE OFF)
-        set(SDLMIXER_GME OFF)
-        set(SDLMIXER_WAVPACK OFF)
-        set(SDLMIXER_MOD OFF)
-        set(SDLMIXER_OPUS OFF)
-
-        # FetchContent_MakeAvailable(SDL SDL_mixer SDL_image)
-        FetchContent_MakeAvailable(SDL SDL_mixer)
+    message(STATUS "SDL3_mixer not found - building from source")
+    
+    # Configure Mixer options BEFORE making it available
+    set(SDLMIXER_MIDI_NATIVE OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_GME OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_WAVPACK OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_MOD OFF CACHE BOOL "" FORCE)
+    set(SDLMIXER_OPUS OFF CACHE BOOL "" FORCE)
+    
+    FetchContent_MakeAvailable(SDL_mixer)
 endif()
 
+# --- Rest of your project ---
 add_subdirectory(utility)
 add_subdirectory(graphics)
 add_subdirectory(world)
 
 add_library(game_lib
-        game.cpp game.h
-        asset_manager.cpp asset_manager.h
-        level_designer.cpp level_designer.h
+    game.cpp game.h
+    asset_manager.cpp asset_manager.h
+    level_designer.cpp level_designer.h
 )
 
-target_link_libraries(game_lib PUBLIC SDL3::SDL3 graphics world)
+target_link_libraries(game_lib PUBLIC SDL3::SDL3 SDL3_mixer::SDL3_mixer graphics world)
 
 add_executable(game main.cpp)
 target_link_libraries(game PUBLIC game_lib)
