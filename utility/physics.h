@@ -18,7 +18,7 @@ public:
     float turn_speed{20}; // degrees per second
     float turn_acceleration{100}; // degrees per second^2
 
-    Vec<float> position{0,0};
+    Vec<float> position{1,1};
     Vec<float> velocity{0,0};
     Vec<float> acceleration{0,0};
 
