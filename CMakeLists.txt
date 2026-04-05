@@ -22,6 +22,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
     GIT_TAG release-3.4.0
     GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
     OVERRIDE_FIND_PACKAGE
 )
 
@@ -30,6 +31,7 @@ FetchContent_Declare(
     GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
     GIT_TAG main
     GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
     OVERRIDE_FIND_PACKAGE
 )
 
@@ -66,7 +68,7 @@ add_library(game_lib
     level_designer.cpp level_designer.h
 )
 
-target_link_libraries(game_lib PUBLIC SDL3::SDL3 SDL3_mixer::SDL3_mixer graphics world)
+target_link_libraries(game_lib PUBLIC SDL3::SDL3 SDL3_mixer::SDL3_mixer graphics world utility)
 
 add_executable(game main.cpp)
 target_link_libraries(game PUBLIC game_lib)
